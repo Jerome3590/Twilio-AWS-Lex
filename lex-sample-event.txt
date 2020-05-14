@@ -104,6 +104,6 @@
     "missedUtterance": false,
     "inputDialogMode": "Text",
     "requestId": "d09c22b6-b6dd-4af4-bd79-d13fd89c4a45",
-    "userId": "18048733575",
+    "userId": "1345856775",
     "sessionId": "2020-05-09T22:44:25.236Z-IoZaPrPz"
 }

@@ -1,0 +1,19 @@
+{
+  "dialogState": "ElicitSlot",
+  "intentName": "test",
+  "message": "In the past 30 days, where have you been living most of the time? 1-With Parents 2-Family member but not with parents 3-Correctional Facility 4-Outdoor Shelter 5-Hostel 6-School Housing 7-Other",
+  "messageFormat": "PlainText",
+  "responseAttributes": null,
+  "responseCard": null,
+  "sentimentResponse": null,
+  "sessionAttributes": {},
+  "sessionId": "2020-05-14T11:45:38.782Z-kcXHbUox",
+  "slotToElicit": "shelter",
+  "slots": {
+    "bday": "1974-11-27",
+    "fname": "Jerome",
+    "lname": "Dixon",
+    "personalRelations": "1",
+    "shelter": null
+  }
+}

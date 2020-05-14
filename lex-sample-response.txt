@@ -10,7 +10,7 @@
   "sessionId": "2020-05-14T11:45:38.782Z-kcXHbUox",
   "slotToElicit": "shelter",
   "slots": {
-    "bday": "1974-11-27",
+    "bday": "1964-10-27",
     "fname": "Jerome",
     "lname": "Dixon",
     "personalRelations": "1",

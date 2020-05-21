@@ -4,9 +4,6 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-global slots_current
-
-
 # ---Main Handler---
 def lambda_handler(event, context):
     logger.debug(event)

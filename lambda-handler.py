@@ -56,16 +56,20 @@ def merge_slots(dict1, dict2):
     d1 = dict1['Slots']
     d2 = dict2['Slots']
     d1.update(d2)
-    res = {'Slots': d1}
+    res = d1
     return res
 
 
 def validate_input(event):
     try:
         slots_current_all = event['currentIntent']['slots']
+        logger.debug(slots_current_all)
         slots_current_no_nulls = list({ele for ele in slots_current_all if slots_current_all[ele]})
-        
-        if slots_current_no_nulls['raceOne'] != '4':
+        logger.debug(slots_current_no_nulls)
+        slots = {'Slots': slots_current_no_nulls}
+        logger.debug(slots)
+
+        if slots['raceOne'] != '4':
             slots_1 = {
                 'Slots': {
                     'raceTwo': '8',
@@ -75,10 +79,10 @@ def validate_input(event):
             slots_lex = merge_slots(slots_1, slots_current_no_nulls)
             return input_response(slots_lex)
 
-        elif slots_current_no_nulls['raceOne'] == '1':
+        elif slots['milStatus'] == '1':
             slots_2 = {
                 'Slots': {
-                    'milStatus': '1',
+                    'milStatusTwo': '1',
                     'milService': '5',
                     'milDeployment': '1'
                 }
@@ -86,7 +90,7 @@ def validate_input(event):
             slots_lex = merge_slots(slots_2, slots_current_no_nulls)
             return input_response(slots_lex)
 
-        elif slots_current_no_nulls['activitySexOne'] == '1':
+        elif slots['activitySexOne'] == '1':
             slots_3 = {
                 'Slots': {
                     'activitySexTwo': '1',
@@ -102,8 +106,7 @@ def validate_input(event):
         else:
             raise ValueError('No Data Validation Conditions Met')
     except ValueError:
-        slots_lex = slots_current_no_nulls
-        return input_response(slots_lex)
+        return input_response(slots_current_no_nulls)
 
 
 def complete_survey(event):

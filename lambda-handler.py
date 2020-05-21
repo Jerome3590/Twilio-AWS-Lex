@@ -4,6 +4,8 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+global slots_current
+
 
 # ---Main Handler---
 def lambda_handler(event, context):
@@ -30,12 +32,11 @@ def lambda_handler(event, context):
         logger.debug(event)
 
 
-def input_response(session_attributes, slots):
+def input_response(slots_lex):
     response = {
-        'sessionAttributes': session_attributes,
         'dialogAction': {
             'type': "Delegate",
-            'slots': slots
+            'slots': slots_lex
         }
     }
     return response
@@ -54,33 +55,30 @@ def fulfillment_response(session_attributes, fullfillment_state, message):
     return filled_response
 
 
-def merge_dicts(dict1, dict2):
-    res = {**dict1, **dict2}
+def merge_slots(dict1, dict2):
+    d1 = dict1['Slots']
+    d2 = dict2['Slots']
+    d1.update(d2)
+    res = {'Slots': d1}
     return res
 
 
 def validate_input(event):
-    userID = event.get('userId')
-    intent = event['currentIntent']['name']
-    slots_current = event['currentIntent']['slots']
-    session_attributes = event.get('sessionAttributes')
-    bot_message = event.get['botRequest']
-    user_input = event.get['inputTranscript']
-
     try:
-        if bot_message == 'On scale 5 - 8, What ethnic group do you consider yourself? 5-Mexican, 6-Puerto Rican, ' \
-                          '7-South American, 8-None of these' and user_input != '4':
+        slots_current_all = event['currentIntent']['slots']
+        slots_current_no_nulls = list({ele for ele in slots_current_all if slots_current_all[ele]})
+        
+        if slots_current_no_nulls['raceOne'] != '4':
             slots_1 = {
                 'Slots': {
                     'raceTwo': '8',
                     'raceThree': '12'
                 }
             }
-            slots = merge_dicts(slots_1, slots_current)
-            return input_response(session_attributes, slots)
+            slots_lex = merge_slots(slots_1, slots_current_no_nulls)
+            return input_response(slots_lex)
 
-        elif bot_message == 'Are you currently on active duty? 1-No 2-Yes, Armed Forces 3-Yes, Reservist 4-Yes, ' \
-                            'National Guard' and user_input == '1':
+        elif slots_current_no_nulls['raceOne'] == '1':
             slots_2 = {
                 'Slots': {
                     'milStatus': '1',
@@ -88,11 +86,10 @@ def validate_input(event):
                     'milDeployment': '1'
                 }
             }
-            slots = merge_dicts(slots_2, slots_current)
-            return input_response(session_attributes, slots)
+            slots_lex = merge_slots(slots_2, slots_current_no_nulls)
+            return input_response(slots_lex)
 
-        elif bot_message == 'If you had sexual activity in the last 30 days, which type of sexual contact was ' \
-                            'involved? 1-Not applicable to me 2-vaginal 3-oral 4-anal' and user_input == '1':
+        elif slots_current_no_nulls['activitySexOne'] == '1':
             slots_3 = {
                 'Slots': {
                     'activitySexTwo': '1',
@@ -102,14 +99,14 @@ def validate_input(event):
                     'activitySexSix': '1'
                 }
             }
-            slots = merge_dicts(slots_3, slots_current)
-            return input_response(session_attributes, slots)
+            slots_lex = merge_slots(slots_3, slots_current_no_nulls)
+            return input_response(slots_lex)
 
         else:
             raise ValueError('No Data Validation Conditions Met')
     except ValueError:
-        slots = slots_current
-        return input_response(session_attributes, slots)
+        slots_lex = slots_current_no_nulls
+        return input_response(slots_lex)
 
 
 def complete_survey(event):
@@ -133,4 +130,4 @@ def complete_survey(event):
         }
     )
 
-    fulfillment_response(fullfillment_state, message)
+    return fulfillment_response(fullfillment_state, message)

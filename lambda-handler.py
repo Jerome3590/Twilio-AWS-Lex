@@ -69,17 +69,17 @@ def validate_input(event):
         slots = {'Slots': slots_current_no_nulls}
         logger.debug(slots)
 
-        if slots['raceOne'] != '4':
+        if slots.get('raceOne') != '4':
             slots_1 = {
                 'Slots': {
                     'raceTwo': '8',
                     'raceThree': '12'
                 }
             }
-            slots_lex = merge_slots(slots_1, slots_current_no_nulls)
+            slots_lex = merge_slots(slots_1, slots)
             return input_response(slots_lex)
 
-        elif slots['milStatus'] == '1':
+        elif slots.get('milStatus') == '1':
             slots_2 = {
                 'Slots': {
                     'milStatusTwo': '1',
@@ -87,36 +87,35 @@ def validate_input(event):
                     'milDeployment': '1'
                 }
             }
-            slots_lex = merge_slots(slots_2, slots_current_no_nulls)
+            slots_lex = merge_slots(slots_2, slots)
             return input_response(slots_lex)
 
-        elif slots['activitySexOne'] == '1':
+        elif slots.get('activitySexOne') == '2':
             slots_3 = {
                 'Slots': {
                     'activitySexTwo': '1',
                     'activitySexThree': '0',
                     'activitySexFour': '0',
                     'activitySexFive': '0',
-                    'activitySexSix': '1'
+                    'activitySexSix': '0'
                 }
             }
-            slots_lex = merge_slots(slots_3, slots_current_no_nulls)
+            slots_lex = merge_slots(slots_3, slots)
             return input_response(slots_lex)
 
         else:
             raise ValueError('No Data Validation Conditions Met')
     except ValueError:
-        return input_response(slots_current_no_nulls)
+        return input_response(slots_current_all)
 
 
 def complete_survey(event):
+    logger.debug(event)
     userID = event.get('userId')
-    intent = event['intentName']
+    intent = event['currentIntent']['name']
     sessionID = event.get('sessionId')
-    slots = event['recentIntentSummaryView']['slots']
-    fullfillment_state = event['recentIntentSummaryView']['fullfillmentState']
-    message = event['recentIntentSummaryView']['confirmationStatus']
-
+    slots = event['currentIntent']['slots']
+    
     # DynamoDB client for posting final survey response
     client = boto3.resource("dynamodb")
     table = client.Table("DBHDS_YSAT")
@@ -130,4 +129,4 @@ def complete_survey(event):
         }
     )
 
-    return fulfillment_response(fullfillment_state, message)
+    return fulfillment_response(message)

@@ -5,6 +5,14 @@ from boto3.dynamodb.conditions import Key
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+# ---Helpers---
+def remove_empty_from_dict(d):
+    if type(d) is dict:
+        return dict((k, remove_empty_from_dict(v)) for k, v in d.items() if v and remove_empty_from_dict(v))
+    elif type(d) is list:
+        return [remove_empty_from_dict(v) for v in d if v and remove_empty_from_dict(v)]
+    else:
+        return d
 
 # ---Main Handler---
 def lambda_handler(event, context):
@@ -40,7 +48,8 @@ def input_response(slots_updated):
     
 def check_session(event):
     userID = event.get('userId')
-    slots_dict_d1 = event['currentIntent']['slots']
+    slots_dict_current = event['currentIntent']['slots']
+    slots_dict_d1 = remove_empty_from_dict(slots_dict_current)
         
     try:
         #DynamoDB session data
@@ -53,14 +62,17 @@ def check_session(event):
         if len(slots_dict_d2) > len(slots_dict_d1):
             slots_dict_d1.update(slots_dict_d2)
             slots_dict = slots_dict_d1
+            logger.debug(slots_dict)
             return slots_dict
     
     except ValueError:
         slots_dict = slots_dict_d1
+        logger.debug(slots_dict)
         return slots_dict
 
     else:
         slots_dict = slots_dict_d1
+        logger.debug(slots_dict)
         return slots_dict
         
 
@@ -124,9 +136,8 @@ def validate_input(event):
             slots_dict.update(s3)
     
     except ValueError:
-        logger.debug(slotSessionAttributes)
+        logger.debug(slots_dict)
 
     else:
         return input_response(slots_dict)
     return input_response(slots_dict)
-

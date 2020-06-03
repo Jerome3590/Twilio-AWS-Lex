@@ -50,6 +50,7 @@ def check_session(event):
     userID = event.get('userId')
     slots_dict_current = event['currentIntent']['slots']
     slots_dict_d1 = remove_empty_from_dict(slots_dict_current)
+    logger.debug(slots_dict_d1)
         
     try:
         #DynamoDB session data
@@ -96,11 +97,10 @@ def exit_survey(event):
 
 
 def validate_input(event):
-    slots_dict = event['currentIntent']['slots']
+    slots_dict = check_session(event)
     logger.debug(slots_dict)
     
     try:
-        check_session(event)
         if slots_dict.get('raceOne') == '1' or slots_dict.get('raceOne') == '2' or slots_dict.get('raceOne') == '3':
             slots_1 = {
                 'Slots': {

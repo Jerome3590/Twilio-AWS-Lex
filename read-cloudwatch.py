@@ -3,9 +3,11 @@ import logging
 import gzip
 import json
 import base64
+from datetime import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
 
 
 # ---Main Handler---
@@ -18,7 +20,9 @@ def lambda_handler(event, context):
     log_event = payload['logEvents']
     logger.debug(log_event)
     
-    timestamp = log_event[0]['timestamp']
+    ts = log_event[0]['timestamp']
+    logger.debug(ts)
+    timestamp = datetime.utcfromtimestamp(ts/1000).strftime('%Y-%m-%d %H:%M:%S')
     
     bot_log = json.loads(log_event[0]['message'])
     
@@ -29,7 +33,7 @@ def lambda_handler(event, context):
     
     # DynamoDB client for posting bot responses
     client = boto3.resource("dynamodb")
-    table = client.Table("Processing")
+    table = client.Table("Processing2")
 
     table.put_item(
         Item={
@@ -40,7 +44,3 @@ def lambda_handler(event, context):
             'TimeStamp': timestamp
         }
     )
-
-    
-    
-    

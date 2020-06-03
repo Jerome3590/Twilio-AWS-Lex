@@ -56,7 +56,8 @@ def check_session(event):
             return slots_dict
     
     except ValueError:
-        logger.debug(slots_dict_d1)
+        slots_dict = slots_dict_d1
+        return slots_dict
 
     else:
         slots_dict = slots_dict_d1

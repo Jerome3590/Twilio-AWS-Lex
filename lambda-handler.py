@@ -27,10 +27,10 @@ def lambda_handler(event, context):
             elif intent_name == 'exit':
                 return exit_survey(event)
         else:
-            raise ValueError('Must be Fullfillment')
+            raise ValueError('Must be Fullfillment or Exit')
 
     except ValueError:
-        logger.debug(event)
+        return exit_survey(event)
 
     else:
         logger.debug(event)
@@ -49,38 +49,42 @@ def input_response(slots_updated):
 def check_session(event):
     userID = event.get('userId')
     slots_dict_current = event['currentIntent']['slots']
+    logger.debug(slots_dict_current)
     slots_dict_d1 = remove_empty_from_dict(slots_dict_current)
     logger.debug(slots_dict_d1)
         
     try:
         #DynamoDB session data
         client = boto3.resource("dynamodb")
-        table = client.Table("Processing")
+        table = client.Table("Processing2")
         resp = table.query(KeyConditionExpression=Key('UserID').eq(userID))
-        slots_dict_d2 = resp['Items'][0]['Slots']
+        logger.debug(resp)
+        slots_dict_dynamo = resp['Items'][0]['Slots']
+        logger.debug(slots_dict_dynamo)
+        slots_dict_d2 = remove_empty_from_dict(slots_dict_dynamo)
         logger.debug(slots_dict_d2)
         
         if len(slots_dict_d2) > len(slots_dict_d1):
             slots_dict_d1.update(slots_dict_d2)
-            slots_dict = slots_dict_d1
-            logger.debug(slots_dict)
-            return slots_dict
+            slots_dict1 = slots_dict_d1
+            logger.debug(slots_dict1)
+            return slots_dict1
     
-    except ValueError:
-        slots_dict = slots_dict_d1
-        logger.debug(slots_dict)
-        return slots_dict
+    except IndexError:
+        slots_dict1 = slots_dict_current
+        logger.debug(slots_dict1)
+        return slots_dict1
 
     else:
-        slots_dict = slots_dict_d1
-        logger.debug(slots_dict)
-        return slots_dict
+        slots_dict1 = slots_dict_current
+        logger.debug(slots_dict1)
+        return slots_dict1
         
 
 def exit_survey(event):
     userID = event.get('userId')
     intent = event['currentIntent']['name']
-    fullfillment_state = 'Failed'
+    fullfillment_state = 'Fulfilled'
     message_content = "Your responses have been recorded. Please text 804.251.2876 with 'intake' to resume at any time"
 
     response = {

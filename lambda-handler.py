@@ -44,48 +44,46 @@ def input_response(slots_updated):
         }
     }
     return response
+	
+	
+def get_saved_slots(userID,intent):
+    userID_intent = userID+'#'+intent
+    #DynamoDB session data
+    client = boto3.resource("dynamodb")
+    table = client.Table("Processing")
+    resp = table.query(
+        KeyConditionExpression=Key('UserID#Intent').eq(userID_intent),
+        ScanIndexForward=False,
+        Limit=1,
+        ConsistentRead=True
+    )
+    return resp['Items'][0]['Slots']
     
-    
+
 def check_session(event):
     userID = event.get('userId')
-    slots_dict_current = event['currentIntent']['slots']
-    logger.debug(slots_dict_current)
-    slots_dict_d1 = remove_empty_from_dict(slots_dict_current)
-    logger.debug(slots_dict_d1)
-        
+    intent = event['currentIntent']['name']
+    current_slots = event['currentIntent']['slots']
+    logger.debug(current_slots)
+    emptied_current = remove_empty_from_dict(current_slots)
+    logger.debug(emptied_current)
     try:
         #DynamoDB session data
-        client = boto3.resource("dynamodb")
-        table = client.Table("Processing2")
-        resp = table.query(
-            KeyConditionExpression=Key('UserID').eq(userID),
-            ScanIndexForward=False,
-            Limit=1,
-            ConsistentRead=True
-        )
-
-        slots_dict_dynamo = resp['Items'][0]['Slots']
-        
-        logger.debug(slots_dict_dynamo)
-        slots_dict_d2 = remove_empty_from_dict(slots_dict_dynamo)
-        logger.debug(slots_dict_d2)
-        
-        if len(slots_dict_d2) > len(slots_dict_d1):
-            slots_dict_d1.update(slots_dict_d2)
-            slots_dict1 = slots_dict_d1
-            logger.debug(slots_dict1)
-            return slots_dict1
-    
+        saved_slots = get_saved_slots(userID)
     except IndexError:
-        slots_dict1 = slots_dict_current
-        logger.debug(slots_dict1)
-        return slots_dict1
-
+        logger.debug(f'No slots found. Using {current_slots}')
+        return current_slots
+    logger.debug(saved_slots)
+    emptied_saved = remove_empty_from_dict(saved_slots)
+    logger.debug(emptied_saved)
+    if len(emptied_saved) > len(emptied_current):
+        emptied_current.update(emptied_saved)
+        logger.debug(emptied_current)
+        return emptied_current
     else:
-        slots_dict1 = slots_dict_current
-        logger.debug(slots_dict1)
-        return slots_dict1
-        
+        logger.debug(current_slots)
+        return current_slots
+     
 
 def exit_survey(event):
     userID = event.get('userId')

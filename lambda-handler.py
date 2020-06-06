@@ -69,7 +69,7 @@ def check_session(event):
     logger.debug(emptied_current)
     try:
         #DynamoDB session data
-        saved_slots = get_saved_slots(userID)
+        saved_slots = get_saved_slots(userID,intent)
     except IndexError:
         logger.debug(f'No slots found. Using {current_slots}')
         return current_slots

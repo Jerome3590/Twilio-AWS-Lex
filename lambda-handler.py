@@ -57,9 +57,15 @@ def check_session(event):
         #DynamoDB session data
         client = boto3.resource("dynamodb")
         table = client.Table("Processing2")
-        resp = table.query(KeyConditionExpression=Key('UserID').eq(userID))
-        logger.debug(resp)
+        resp = table.query(
+            KeyConditionExpression=Key('UserID').eq(userID),
+            ScanIndexForward=False,
+            Limit=1,
+            ConsistentRead=True
+        )
+
         slots_dict_dynamo = resp['Items'][0]['Slots']
+        
         logger.debug(slots_dict_dynamo)
         slots_dict_d2 = remove_empty_from_dict(slots_dict_dynamo)
         logger.debug(slots_dict_d2)

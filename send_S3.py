@@ -4,11 +4,16 @@ import logging
 from boto3.dynamodb.conditions import Key
 import pandas as pd
 import io
+import os
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+os.chdir('/tmp/')
 
+s3_resource = boto3.resource("s3")
+s3_client = boto3.client("s3")
 
 # ---Main Handler---
 def lambda_handler(event, context):
@@ -21,9 +26,6 @@ def lambda_handler(event, context):
             lex_survey_type = event['Records'][0]['dynamodb']['NewImage']['IntentName']['S']
             lex_userID = event['Records'][0]['dynamodb']['NewImage']['UserID']['S']
             lex_survey_date = event['Records'][0]['dynamodb']['ApproximateCreationDateTime']
-    
-            s3_resource = boto3.resource("s3")
-            s3_client = boto3.client("s3")
     
             file_obj = s3_client.get_object(Bucket='dbhds-lex-files', Key='GPRA_CodeBook.xlsx')
             file_content = file_obj["Body"].read()
@@ -82,12 +84,13 @@ def lambda_handler(event, context):
             clinician_df_final.to_csv(outputFile)
             logger.debug(clinician_df_final)
             
-            with open("/tmp/" + lex_userID + ".csv", "w") as f:
+            with open(lex_userID + '.csv', 'w') as f:
                 json.dump(outputFile,f)
     
-            s3_client.upload_file('/tmp/' + lex_userID + '.csv', 'dbhds-lex-files', 'western-tidewater/' + lex_userID + '.csv')
+            s3_client.upload_file(lex_userID + '.csv', 'dbhds-lex-files', 'western-tidewater/' + lex_userID + '.csv')
 
     except Exception as e:
         print(e)
         logger.debug(event)
+
 

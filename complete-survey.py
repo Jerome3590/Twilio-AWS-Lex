@@ -51,7 +51,7 @@ def complete_survey(event):
         'dialogAction': {
             'type': 'Close',
             'fulfillmentState': fullfillment_state,
-            'message': {contentType: 'PlainText', content: message_content}
+            'message': {'contentType': 'PlainText', 'content': message_content}
         }
         
     }

@@ -78,19 +78,12 @@ def lambda_handler(event, context):
                 clinician_df_final.at[4, 'User_Response_x'] = pd.to_datetime(lex_survey_date, unit='s')
     
             clinician_df_final.drop(index=0, axis=1)
-            
-            outputFile = lex_userID + '.csv'
-    
-            clinician_df_final.to_csv(outputFile)
-            logger.debug(clinician_df_final)
-            
-            with open(lex_userID + '.csv', 'w') as f:
-                json.dump(outputFile,f)
-    
+
+            clinician_df_final.to_csv(lex_userID + '.csv')
+
             s3_client.upload_file(lex_userID + '.csv', 'dbhds-lex-files', 'western-tidewater/' + lex_userID + '.csv')
+
 
     except Exception as e:
         print(e)
         logger.debug(event)
-
-

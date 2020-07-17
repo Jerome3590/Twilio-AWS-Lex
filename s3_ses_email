@@ -15,11 +15,11 @@ def lambda_handler(event, context):
         bucket_name = i["s3"]["object"]["key"]
         object = i["s3"]["object"]["key"]
         
-    fileObj = s3.get_object(Bucket = dbhds-lex-files, Key = object)
+    fileObj = s3_client.get_object(Bucket = 'dbhds-lex-files', Key = object)
     file_content = fileObj["Body"].read()
     
     sender = "ysat@cana-chatbot.awsapps.com"
-    to = western-tidewater@cana-chatbot.awsapps.com
+    to = "western-tidewater@cana-chatbot.awsapps.com"
     subject = str(action) + 'Event from ' + bucket_name
     body= """
     <br>
@@ -40,6 +40,6 @@ def lambda_handler(event, context):
     msg.attach(attachment)
         
    
-   response = ses.send_raw_email(Source = sender, Destinations = [to], RawMessage = {"Data":msg.as_string()})
+    response = ses_client.send_raw_email(Source = sender, Destinations = [to], RawMessage = {"Data":msg.as_string()})
     
-   
+  

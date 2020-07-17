@@ -20,21 +20,16 @@ def lambda_handler(event, context):
     try:
         if event['invocationSource'] == 'DialogCodeHook':
             intent_name = event['currentIntent']['name']
-            if intent_name == 'intake':
-                return validate_input(event)
-            elif intent_name == 'test':
+            if intent_name != 'exit':
                 return validate_input(event)
             elif intent_name == 'exit':
                 return exit_survey(event)
         else:
             raise ValueError('Must be Fullfillment or Exit')
-
     except ValueError:
         return exit_survey(event)
-
     else:
         logger.debug(event)
-
 
 def input_response(slots_updated):
     response = {
@@ -44,7 +39,6 @@ def input_response(slots_updated):
         }
     }
     return response
-	
 	
 def get_saved_slots(userID,intent):
     userID_intent = userID+'#'+intent
@@ -59,6 +53,33 @@ def get_saved_slots(userID,intent):
     )
     return resp['Items'][0]['Slots']
     
+def get_last_intent(userID):
+    #DynamoDB session data
+    client = boto3.resource("dynamodb")
+    table = client.Table("Processing")
+    try:
+        userID_intent = userID + '#intake'
+        response = table.query(
+            KeyConditionExpression=Key('UserID#Intent').eq(userID_intent))
+        last_intent = "intake"
+    except ValueError:
+        userID_intent = userID + '#discharge'
+        response = table.query(
+            KeyConditionExpression=Key('UserID#Intent').eq(userID_intent))
+        last_intent = "discharge"
+    except ValueError:
+        userID_intent = userID + '#follow_up'
+        response = table.query(
+            KeyConditionExpression=Key('UserID#Intent').eq(userID_intent))
+        last_intent = "follow_up"
+    except ValueError:
+        userID_intent = userID + '#test'
+        response = table.query(
+            KeyConditionExpression=Key('UserID#Intent').eq(userID_intent))
+        last_intent = "test"
+    else:
+        pass
+    return last_intent
 
 def check_session(event):
     userID = event.get('userId')
@@ -84,12 +105,12 @@ def check_session(event):
         logger.debug(current_slots)
         return current_slots
      
-
 def exit_survey(event):
     userID = event.get('userId')
     intent = event['currentIntent']['name']
     fullfillment_state = 'Fulfilled'
-    message_content = "Your responses have been recorded. Please text 804.251.2876 with 'intake' to resume at any time"
+    last_intent = get_last_intent(userID)
+    message_content = "Your responses have been saved. Please text 804.251.2876 with '" + last_intent + "' when ready to resume."
 
     response = {
         'dialogAction': {
@@ -103,11 +124,9 @@ def exit_survey(event):
     logger.debug(response)
     return response
 
-
 def validate_input(event):
     slots_dict = check_session(event)
     logger.debug(slots_dict)
-    
     try:
         if slots_dict.get('raceOne') == '1' or slots_dict.get('raceOne') == '2' or slots_dict.get('raceOne') == '3':
             slots_1 = {
@@ -118,7 +137,6 @@ def validate_input(event):
             }
             s1 = slots_1["Slots"]
             slots_dict.update(s1)
-
         if slots_dict.get('milStatus') == '1':
             slots_2 = {
                 'Slots': {
@@ -129,7 +147,6 @@ def validate_input(event):
             }
             s2 = slots_2["Slots"]
             slots_dict.update(s2)
-
         if slots_dict.get('activitySexOne') == '2':
             slots_3 = {
                 'Slots': {
@@ -142,10 +159,8 @@ def validate_input(event):
             }
             s3 = slots_3["Slots"]
             slots_dict.update(s3)
-    
     except ValueError:
         logger.debug(slots_dict)
-
     else:
         return input_response(slots_dict)
     return input_response(slots_dict)

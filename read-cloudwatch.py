@@ -33,13 +33,12 @@ def lambda_handler(event, context):
     
     # DynamoDB client for posting bot responses
     client = boto3.resource("dynamodb")
-    table = client.Table("Processing2")
+    table = client.Table("Processing")
 
     table.put_item(
         Item={
-            'UserID': userID,
+            'UserID#Intent': userID+'#'+intent,
             'SessionID': sessionID,
-            'IntentName': intent,
             'Slots': slots,
             'TimeStamp': timestamp
         }
